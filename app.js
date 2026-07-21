@@ -1,82 +1,108 @@
 /* ==========================================================
    RADAR · pipeline de prospecção
-   CRUD completo em JavaScript puro, com drag and drop nativo
-   e persistência em localStorage.
+   CRUD completo em JavaScript puro, com drag and drop nativo,
+   busca em tempo real, métricas da operação e persistência
+   em localStorage.
    ========================================================== */
 
 const CHAVE_STORAGE = "radar.leads.v1";
 
 const ETAPAS = [
-  { id: "mapeado", nome: "Mapeado" },
-  { id: "abordado", nome: "Abordado" },
-  { id: "conversando", nome: "Conversando" },
-  { id: "proposta", nome: "Proposta" },
-  { id: "fechado", nome: "Fechado" },
-  ];
+  { id: "mapeado", nome: "Mapeado", cor: "#5C6B75" },
+  { id: "abordado", nome: "Abordado", cor: "#23557F" },
+  { id: "conversando", nome: "Conversando", cor: "#B07C10" },
+  { id: "proposta", nome: "Proposta", cor: "#8A3E78" },
+  { id: "fechado", nome: "Fechado", cor: "#1E7A4C" },
+];
+
+const CLASSE_NICHO = {
+  "Barbearia": "n-barbearia",
+  "Salão de beleza": "n-salao",
+  "Clínica estética": "n-clinica",
+  "Odontologia": "n-odonto",
+  "Restaurante": "n-restaurante",
+  "Outro": "n-outro",
+};
 
 // ---------- Estado ----------
 
 let leads = carregarLeads();
-let leadEmEdicao = null; // guarda o id quando o modal está em modo edição
+let leadEmEdicao = null;  // id do lead quando o modal está em modo edição
+let termoBusca = "";      // filtro digitado no campo de busca
 
 function carregarLeads() {
-    try {
-          const salvo = localStorage.getItem(CHAVE_STORAGE);
-          if (salvo) return JSON.parse(salvo);
-    } catch (erro) {
-          console.error("Não foi possível ler o localStorage:", erro);
-    }
-    // Primeiro acesso: dois exemplos para o quadro não nascer vazio
+  try {
+    const salvo = localStorage.getItem(CHAVE_STORAGE);
+    if (salvo) return JSON.parse(salvo);
+  } catch (erro) {
+    console.error("Não foi possível ler o localStorage:", erro);
+  }
+  // Primeiro acesso: dois exemplos para o quadro não nascer vazio
   return [
     {
-            id: gerarId(),
-            nome: "Barbearia Navalha de Ouro",
-            nicho: "Barbearia",
-            cidade: "Magé, RJ",
-            instagram: "@navalhadeouro",
-            ultimoContato: diasAtras(2),
-            obs: "Feed bonito, mas sem CTA. Comentei no post do degradê.",
-            etapa: "abordado",
+      id: gerarId(),
+      nome: "Barbearia Navalha de Ouro",
+      nicho: "Barbearia",
+      cidade: "Magé, RJ",
+      instagram: "@navalhadeouro",
+      ultimoContato: diasAtras(2),
+      obs: "Feed bonito, mas sem CTA. Comentei no post do degradê.",
+      etapa: "abordado",
     },
     {
-            id: gerarId(),
-            nome: "Studio Ana Lash",
-            nicho: "Clínica estética",
-            cidade: "Duque de Caxias, RJ",
-            instagram: "@studioanalash",
-            ultimoContato: diasAtras(9),
-            obs: "Respondeu a primeira DM. Combinei de mandar uma prévia.",
-            etapa: "conversando",
+      id: gerarId(),
+      nome: "Studio Ana Lash",
+      nicho: "Clínica estética",
+      cidade: "Duque de Caxias, RJ",
+      instagram: "@studioanalash",
+      ultimoContato: diasAtras(9),
+      obs: "Respondeu a primeira DM. Combinei de mandar uma prévia.",
+      etapa: "conversando",
     },
-      ];
+  ];
 }
 
 function salvarLeads() {
-    localStorage.setItem(CHAVE_STORAGE, JSON.stringify(leads));
+  localStorage.setItem(CHAVE_STORAGE, JSON.stringify(leads));
 }
 
 function gerarId() {
-    return "lead_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  return "lead_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
 function diasAtras(n) {
-    const d = new Date();
-    d.setDate(d.getDate() - n);
-    return d.toISOString().slice(0, 10);
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
 }
 
 // ---------- Termômetro de follow-up ----------
-// Regra simples de negócio: até 3 dias o contato está quente,
+// Regra de negócio: até 3 dias o contato está quente,
 // até 7 está morno, acima disso esfriou e precisa de retomada.
 
 function avaliarFollowUp(dataISO) {
-    if (!dataISO) return { classe: "t-sem", rotulo: "sem contato", largura: 0 };
+  if (!dataISO) return { classe: "t-sem", rotulo: "sem contato", largura: 0 };
 
   const dias = Math.floor((Date.now() - new Date(dataISO + "T12:00:00")) / 86400000);
 
   if (dias <= 3) return { classe: "t-quente", rotulo: dias + "d · quente", largura: 100 - dias * 10 };
-    if (dias <= 7) return { classe: "t-morno", rotulo: dias + "d · retomar", largura: 70 - dias * 5 };
-    return { classe: "t-frio", rotulo: dias + "d · esfriou", largura: 20 };
+  if (dias <= 7) return { classe: "t-morno", rotulo: dias + "d · retomar", largura: 70 - dias * 5 };
+  return { classe: "t-frio", rotulo: dias + "d · esfriou", largura: 20 };
+}
+
+// ---------- Busca ----------
+
+document.getElementById("campoBusca").addEventListener("input", (ev) => {
+  termoBusca = ev.target.value.trim().toLowerCase();
+  render();
+});
+
+function combinaComBusca(lead) {
+  if (!termoBusca) return true;
+  return [lead.nome, lead.nicho, lead.cidade, lead.instagram]
+    .join(" ")
+    .toLowerCase()
+    .includes(termoBusca);
 }
 
 // ---------- Renderização ----------
@@ -84,107 +110,138 @@ function avaliarFollowUp(dataISO) {
 const quadro = document.getElementById("quadro");
 
 function render() {
-    quadro.innerHTML = "";
+  quadro.innerHTML = "";
 
   ETAPAS.forEach((etapa) => {
-        const daEtapa = leads.filter((l) => l.etapa === etapa.id);
+    const daEtapa = leads.filter(
+      (l) => l.etapa === etapa.id && combinaComBusca(l)
+    );
 
-                     const coluna = document.createElement("section");
-        coluna.className = "coluna";
-        coluna.innerHTML = `
-              <header class="coluna-cabeca">
-                      <h2 class="coluna-nome">${etapa.nome}</h2>
-                              <span class="coluna-contador">${String(daEtapa.length).padStart(2, "0")}</span>
-                                    </header>
-                                        `;
+    const coluna = document.createElement("section");
+    coluna.className = "coluna";
+    coluna.innerHTML = `
+      <header class="coluna-cabeca" style="--cor-etapa:${etapa.cor}">
+        <h2 class="coluna-nome">${etapa.nome}</h2>
+        <span class="coluna-contador">${String(daEtapa.length).padStart(2, "0")}</span>
+      </header>
+    `;
 
-                     const corpo = document.createElement("div");
-        corpo.className = "coluna-corpo";
-        corpo.dataset.etapa = etapa.id;
+    const corpo = document.createElement("div");
+    corpo.className = "coluna-corpo";
+    corpo.dataset.etapa = etapa.id;
 
-                     if (daEtapa.length === 0) {
-                             corpo.innerHTML = `<p class="coluna-vazia">— vazio —</p>`;
-                     } else {
-                             daEtapa.forEach((lead) => corpo.appendChild(criarCard(lead)));
-                     }
+    if (daEtapa.length === 0) {
+      corpo.innerHTML = `<div class="coluna-vazia"><span>${termoBusca ? "nada encontrado" : "área limpa"}</span></div>`;
+    } else {
+      daEtapa.forEach((lead) => corpo.appendChild(criarCard(lead)));
+    }
 
-                     ligarDropZone(corpo);
-        coluna.appendChild(corpo);
-        quadro.appendChild(coluna);
+    ligarDropZone(corpo);
+    coluna.appendChild(corpo);
+    quadro.appendChild(coluna);
   });
 
-  atualizarResumo();
-    salvarLeads();
+  atualizarMetricas();
+  salvarLeads();
 }
 
 function criarCard(lead) {
-    const card = document.createElement("article");
-    card.className = "card";
-    card.draggable = true;
-    card.dataset.id = lead.id;
+  const card = document.createElement("article");
+  card.className = "card";
+  card.draggable = true;
+  card.dataset.id = lead.id;
 
   const follow = avaliarFollowUp(lead.ultimoContato);
+  const classeNicho = CLASSE_NICHO[lead.nicho] || "n-outro";
 
   card.innerHTML = `
+    <div class="card-cabeca">
       <h3 class="card-nome">${escapar(lead.nome)}</h3>
-          <p class="card-meta">
-                <span>${escapar(lead.nicho || "")}</span>
-                      ${lead.instagram ? `<span>${escapar(lead.instagram)}</span>` : ""}
-                            ${lead.cidade ? `<span>${escapar(lead.cidade)}</span>` : ""}
-                                </p>
-                                    <div class="termometro ${follow.classe}">
-                                          <div class="termometro-trilho">
-                                                  <div class="termometro-barra" style="width:${follow.largura}%"></div>
-                                                        </div>
-                                                              <span class="termometro-rotulo">${follow.rotulo}</span>
-                                                                  </div>
-                                                                    `;
+      <span class="card-nicho ${classeNicho}">${escapar(lead.nicho || "Outro")}</span>
+    </div>
+    <p class="card-meta">
+      ${lead.instagram ? `<span>${escapar(lead.instagram)}</span>` : ""}
+      ${lead.cidade ? `<span>${escapar(lead.cidade)}</span>` : ""}
+    </p>
+    ${lead.obs ? `<p class="card-obs">${escapar(lead.obs)}</p>` : ""}
+    <div class="termometro ${follow.classe}">
+      <div class="termometro-trilho">
+        <div class="termometro-barra" style="width:${follow.largura}%"></div>
+      </div>
+      <span class="termometro-rotulo">${follow.rotulo}</span>
+    </div>
+  `;
 
   // Clique abre a edição; drag move de etapa
   card.addEventListener("click", () => abrirModal(lead.id));
-    card.addEventListener("dragstart", (ev) => {
-          ev.dataTransfer.setData("text/plain", lead.id);
-          card.classList.add("arrastando");
-    });
-    card.addEventListener("dragend", () => card.classList.remove("arrastando"));
+  card.addEventListener("dragstart", (ev) => {
+    ev.dataTransfer.setData("text/plain", lead.id);
+    card.classList.add("arrastando");
+  });
+  card.addEventListener("dragend", () => card.classList.remove("arrastando"));
 
   return card;
 }
 
 // Evita injeção de HTML nos campos digitados
 function escapar(texto) {
-    const div = document.createElement("div");
-    div.textContent = texto;
-    return div.innerHTML;
+  const div = document.createElement("div");
+  div.textContent = texto;
+  return div.innerHTML;
 }
 
 function ligarDropZone(zona) {
-    zona.addEventListener("dragover", (ev) => {
-          ev.preventDefault();
-          zona.classList.add("arrastando-sobre");
-    });
-    zona.addEventListener("dragleave", () => zona.classList.remove("arrastando-sobre"));
-    zona.addEventListener("drop", (ev) => {
-          ev.preventDefault();
-          zona.classList.remove("arrastando-sobre");
-          const id = ev.dataTransfer.getData("text/plain");
-          const lead = leads.find((l) => l.id === id);
-          if (lead && lead.etapa !== zona.dataset.etapa) {
-                  lead.etapa = zona.dataset.etapa;
-                  render();
-          }
-    });
+  zona.addEventListener("dragover", (ev) => {
+    ev.preventDefault();
+    zona.classList.add("arrastando-sobre");
+  });
+  zona.addEventListener("dragleave", () => zona.classList.remove("arrastando-sobre"));
+  zona.addEventListener("drop", (ev) => {
+    ev.preventDefault();
+    zona.classList.remove("arrastando-sobre");
+    const id = ev.dataTransfer.getData("text/plain");
+    const lead = leads.find((l) => l.id === id);
+    if (lead && lead.etapa !== zona.dataset.etapa) {
+      lead.etapa = zona.dataset.etapa;
+      render();
+    }
+  });
 }
 
-function atualizarResumo() {
-    const total = leads.length;
-    const frios = leads.filter((l) => {
-          const f = avaliarFollowUp(l.ultimoContato);
-          return f.classe === "t-frio" && l.etapa !== "fechado";
-    }).length;
+// ---------- Métricas da operação ----------
 
-  document.getElementById("resumoDia").textContent =
-        `${total} leads no radar · ${frios} esfriando`;
+function atualizarMetricas() {
+  const emConversa = leads.filter(
+    (l) => l.etapa === "conversando" || l.etapa === "proposta"
+  ).length;
+
+  const frios = leads.filter((l) => {
+    const f = avaliarFollowUp(l.ultimoContato);
+    return f.classe === "t-frio" && l.etapa !== "fechado";
+  }).length;
+
+  const fechados = leads.filter((l) => l.etapa === "fechado").length;
+
+  animarNumero("mTotal", leads.length);
+  animarNumero("mConversas", emConversa);
+  animarNumero("mFrios", frios);
+  animarNumero("mFechados", fechados);
+}
+
+// Contagem animada: o número sobe até o valor em poucos quadros
+function animarNumero(idElemento, alvo) {
+  const el = document.getElementById(idElemento);
+  const atual = parseInt(el.textContent, 10) || 0;
+  if (atual === alvo) return;
+
+  const passo = alvo > atual ? 1 : -1;
+  let valor = atual;
+
+  const intervalo = setInterval(() => {
+    valor += passo;
+    el.textContent = valor;
+    if (valor === alvo) clearInterval(intervalo);
+  }, 40);
 }
 
 // ---------- Modal (criar / editar / excluir) ----------
@@ -197,53 +254,53 @@ document.getElementById("btnNovoLead").addEventListener("click", () => abrirModa
 document.getElementById("btnFechar").addEventListener("click", () => modal.close());
 
 function abrirModal(id) {
-    leadEmEdicao = id;
-    form.reset();
+  leadEmEdicao = id;
+  form.reset();
 
   if (id) {
-        const lead = leads.find((l) => l.id === id);
-        document.getElementById("modalTitulo").textContent = "Editar lead";
-        form.nome.value = lead.nome;
-        form.nicho.value = lead.nicho || "Outro";
-        form.cidade.value = lead.cidade || "";
-        form.instagram.value = lead.instagram || "";
-        form.ultimoContato.value = lead.ultimoContato || "";
-        form.obs.value = lead.obs || "";
-        btnExcluir.hidden = false;
+    const lead = leads.find((l) => l.id === id);
+    document.getElementById("modalTitulo").textContent = "Editar lead";
+    form.nome.value = lead.nome;
+    form.nicho.value = lead.nicho || "Outro";
+    form.cidade.value = lead.cidade || "";
+    form.instagram.value = lead.instagram || "";
+    form.ultimoContato.value = lead.ultimoContato || "";
+    form.obs.value = lead.obs || "";
+    btnExcluir.hidden = false;
   } else {
-        document.getElementById("modalTitulo").textContent = "Novo lead";
-        btnExcluir.hidden = true;
+    document.getElementById("modalTitulo").textContent = "Novo lead";
+    btnExcluir.hidden = true;
   }
 
   modal.showModal();
 }
 
 form.addEventListener("submit", () => {
-    const dados = {
-          nome: form.nome.value.trim(),
-          nicho: form.nicho.value,
-          cidade: form.cidade.value.trim(),
-          instagram: form.instagram.value.trim(),
-          ultimoContato: form.ultimoContato.value,
-          obs: form.obs.value.trim(),
-    };
+  const dados = {
+    nome: form.nome.value.trim(),
+    nicho: form.nicho.value,
+    cidade: form.cidade.value.trim(),
+    instagram: form.instagram.value.trim(),
+    ultimoContato: form.ultimoContato.value,
+    obs: form.obs.value.trim(),
+  };
 
-                        if (leadEmEdicao) {
-                              const lead = leads.find((l) => l.id === leadEmEdicao);
-                              Object.assign(lead, dados);
-                        } else {
-                              leads.push({ id: gerarId(), etapa: "mapeado", ...dados });
-                        }
+  if (leadEmEdicao) {
+    const lead = leads.find((l) => l.id === leadEmEdicao);
+    Object.assign(lead, dados);
+  } else {
+    leads.push({ id: gerarId(), etapa: "mapeado", ...dados });
+  }
 
-                        render();
+  render();
 });
 
 btnExcluir.addEventListener("click", () => {
-    if (confirm("Excluir este lead do radar?")) {
-          leads = leads.filter((l) => l.id !== leadEmEdicao);
-          modal.close();
-          render();
-    }
+  if (confirm("Excluir este lead do radar?")) {
+    leads = leads.filter((l) => l.id !== leadEmEdicao);
+    modal.close();
+    render();
+  }
 });
 
 // ---------- Início ----------
