@@ -1,246 +1,403 @@
 /* ==========================================================
    RADAR · pipeline de prospecção
-   Identidade: painel de operação. Cinza azulado de escritório,
-   tinta quase preta e amarelo táxi como única cor de ação.
+   Identidade: painel de operação. Cinza azulado de escritório
+   sobre grade técnica, tinta quase preta e amarelo táxi como
+   única cor de ação. Assinatura: a varredura de radar na marca
+   e o termômetro de follow-up em cada card.
    ========================================================== */
 
 :root {
-     --fundo: #E9EDF0;
-     --papel: #FFFFFF;
-     --tinta: #16232B;
-     --tinta-fraca: #5C6B75;
-     --linha: #C9D2D8;
-     --acao: #F7B500;       /* amarelo táxi */
+  --fundo: #E9EDF0;
+  --grade: #DDE3E8;
+  --papel: #FFFFFF;
+  --tinta: #16232B;
+  --tinta-fraca: #5C6B75;
+  --linha: #C9D2D8;
+  --acao: #F7B500;       /* amarelo táxi */
   --acao-tinta: #1A1400;
-     --quente: #1E7A4C;     /* contato fresco */
-  --morno: #B07C10;      /* precisa retomar */
-  --frio: #C43A2F;       /* esfriou */
+  --quente: #1E7A4C;
+  --morno: #B07C10;
+  --frio: #C43A2F;
   --sombra: 0 2px 0 rgba(22, 35, 43, 0.14);
-     --raio: 4px;
+  --raio: 4px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-     background: var(--fundo);
-     color: var(--tinta);
-     font-family: "Archivo", sans-serif;
-     min-height: 100vh;
-     display: flex;
-     flex-direction: column;
+  /* Grade técnica de fundo, papel milimetrado discreto */
+  background:
+    linear-gradient(var(--grade) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grade) 1px, transparent 1px),
+    var(--fundo);
+  background-size: 28px 28px, 28px 28px, auto;
+  color: var(--tinta);
+  font-family: "Archivo", sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ---------- Topo ---------- */
 
 .topo {
-     display: flex;
-     align-items: flex-end;
-     justify-content: space-between;
-     gap: 16px;
-     flex-wrap: wrap;
-     padding: 28px 32px 20px;
-     border-bottom: 2px solid var(--tinta);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 24px 32px 18px;
+  border-bottom: 2px solid var(--tinta);
+  background: var(--fundo);
 }
 
-.topo-marca { display: flex; align-items: baseline; gap: 12px; }
+.topo-marca { display: flex; align-items: center; gap: 14px; }
 
-.marca-pulso {
-     width: 12px; height: 12px;
-     background: var(--acao);
-     border: 2px solid var(--tinta);
-     border-radius: 50%;
-     align-self: center;
-     animation: pulso 2.4s ease-in-out infinite;
+/* Marca: um radar em miniatura com varredura girando */
+.marca-radar {
+  position: relative;
+  width: 44px; height: 44px;
+  border: 2px solid var(--tinta);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 55%, rgba(22, 35, 43, 0.12) 56%, transparent 58%),
+    radial-gradient(circle, transparent 30%, rgba(22, 35, 43, 0.12) 31%, transparent 33%),
+    var(--papel);
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-@keyframes pulso {
-     0%, 100% { transform: scale(1); }
-     50% { transform: scale(1.35); }
+.marca-varredura {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 0deg, rgba(247, 181, 0, 0.55), transparent 70deg);
+  animation: girar 3.2s linear infinite;
 }
+
+.marca-ponto {
+  position: absolute;
+  top: 26%; left: 62%;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--frio);
+  animation: piscar 3.2s ease-in-out infinite;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+@keyframes piscar { 0%, 20% { opacity: 1; } 55%, 100% { opacity: 0.15; } }
 
 @media (prefers-reduced-motion: reduce) {
-     .marca-pulso { animation: none; }
+  .marca-varredura, .marca-ponto { animation: none; }
 }
 
 .topo h1 {
-     font-size: clamp(1.6rem, 3vw, 2.2rem);
-     font-weight: 900;
-     font-stretch: 118%;
-     letter-spacing: 0.04em;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 900;
+  font-stretch: 118%;
+  letter-spacing: 0.04em;
+  line-height: 1;
 }
 
 .topo-sub {
-     font-family: "IBM Plex Mono", monospace;
-     font-size: 0.78rem;
-     color: var(--tinta-fraca);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  color: var(--tinta-fraca);
+  margin-top: 4px;
 }
 
-.topo-acoes { display: flex; align-items: center; gap: 18px; }
+.topo-acoes { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
-.resumo-dia {
-     font-family: "IBM Plex Mono", monospace;
-     font-size: 0.78rem;
-     color: var(--tinta-fraca);
+/* Campo de busca com lupa desenhada em CSS */
+.busca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--papel);
+  border: 2px solid var(--tinta);
+  border-radius: var(--raio);
+  padding: 8px 12px;
+  box-shadow: var(--sombra);
+}
+
+.busca-icone {
+  width: 10px; height: 10px;
+  border: 2px solid var(--tinta-fraca);
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.busca-icone::after {
+  content: "";
+  position: absolute;
+  width: 6px; height: 2px;
+  background: var(--tinta-fraca);
+  transform: rotate(45deg);
+  bottom: -3px; right: -5px;
+}
+
+.busca input {
+  border: none;
+  outline: none;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  background: transparent;
+  color: var(--tinta);
+  width: 150px;
 }
 
 /* ---------- Botões ---------- */
 
 .btn-primario {
-     font-family: "Archivo", sans-serif;
-     font-weight: 800;
-     font-size: 0.9rem;
-     background: var(--acao);
-     color: var(--acao-tinta);
-     border: 2px solid var(--tinta);
-     border-radius: var(--raio);
-     padding: 10px 18px;
-     cursor: pointer;
-     box-shadow: var(--sombra);
-     transition: transform 0.08s ease, box-shadow 0.08s ease;
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  background: var(--acao);
+  color: var(--acao-tinta);
+  border: 2px solid var(--tinta);
+  border-radius: var(--raio);
+  padding: 10px 18px;
+  cursor: pointer;
+  box-shadow: var(--sombra);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 .btn-primario:hover { transform: translateY(-1px); }
 .btn-primario:active { transform: translateY(1px); box-shadow: none; }
 
 .btn-perigo {
-     font-family: "Archivo", sans-serif;
-     font-weight: 700;
-     font-size: 0.85rem;
-     background: transparent;
-     color: var(--frio);
-     border: 2px solid var(--frio);
-     border-radius: var(--raio);
-     padding: 9px 14px;
-     cursor: pointer;
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: transparent;
+  color: var(--frio);
+  border: 2px solid var(--frio);
+  border-radius: var(--raio);
+  padding: 9px 14px;
+  cursor: pointer;
 }
 
 .btn-fechar {
-     background: none;
-     border: none;
-     font-size: 1.5rem;
-     line-height: 1;
-     cursor: pointer;
-     color: var(--tinta-fraca);
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--tinta-fraca);
 }
 
 :focus-visible { outline: 3px solid var(--acao); outline-offset: 2px; }
 
+/* ---------- Faixa de métricas ---------- */
+
+.metricas {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--tinta);
+  background: var(--papel);
+  overflow-x: auto;
+}
+
+.metrica {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 32px;
+  border-right: 1px solid var(--linha);
+  white-space: nowrap;
+}
+
+.metrica-numero {
+  font-family: "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.metrica-rotulo {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--tinta-fraca);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.m-alerta .metrica-numero { color: var(--frio); }
+.m-ok .metrica-numero { color: var(--quente); }
+
 /* ---------- Quadro ---------- */
 
 .quadro {
-     flex: 1;
-     display: grid;
-     grid-auto-flow: column;
-     grid-auto-columns: minmax(250px, 1fr);
-     gap: 16px;
-     padding: 24px 32px 32px;
-     overflow-x: auto;
+  flex: 1;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(250px, 1fr);
+  gap: 16px;
+  padding: 24px 32px 32px;
+  overflow-x: auto;
 }
 
 .coluna {
-     background: transparent;
-     min-width: 0;
-     display: flex;
-     flex-direction: column;
+  background: transparent;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .coluna-cabeca {
-     display: flex;
-     align-items: center;
-     justify-content: space-between;
-     padding: 8px 2px 10px;
-     border-bottom: 2px solid var(--tinta);
-     margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 2px 10px;
+  border-bottom: 3px solid var(--cor-etapa, var(--tinta));
+  margin-bottom: 12px;
 }
 
 .coluna-nome {
-     font-weight: 800;
-     font-size: 0.82rem;
-     text-transform: uppercase;
-     letter-spacing: 0.08em;
+  font-weight: 800;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .coluna-contador {
-     font-family: "IBM Plex Mono", monospace;
-     font-size: 0.75rem;
-     font-weight: 600;
-     background: var(--tinta);
-     color: var(--fundo);
-     padding: 2px 8px;
-     border-radius: var(--raio);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--tinta);
+  color: var(--fundo);
+  padding: 2px 8px;
+  border-radius: var(--raio);
 }
 
 .coluna-corpo {
-     display: flex;
-     flex-direction: column;
-     gap: 10px;
-     min-height: 120px;
-     padding-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 120px;
+  padding-bottom: 24px;
 }
 
 .coluna-corpo.arrastando-sobre {
-     outline: 2px dashed var(--acao);
-     outline-offset: 4px;
-     border-radius: var(--raio);
+  outline: 2px dashed var(--acao);
+  outline-offset: 4px;
+  border-radius: var(--raio);
+  background: rgba(247, 181, 0, 0.06);
 }
 
+/* Estado vazio: um alvo de radar desenhado em CSS */
 .coluna-vazia {
-     font-family: "IBM Plex Mono", monospace;
-     font-size: 0.72rem;
-     color: var(--tinta-fraca);
-     padding: 14px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 6px;
+  color: var(--tinta-fraca);
+}
+
+.coluna-vazia::before {
+  content: "";
+  width: 26px; height: 26px;
+  border: 2px dashed var(--linha);
+  border-radius: 50%;
+}
+
+.coluna-vazia span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
 }
 
 /* ---------- Cards ---------- */
 
 .card {
-     background: var(--papel);
-     border: 2px solid var(--tinta);
-     border-radius: var(--raio);
-     box-shadow: var(--sombra);
-     padding: 12px 12px 10px;
-     cursor: grab;
+  background: var(--papel);
+  border: 2px solid var(--tinta);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: 12px 12px 10px;
+  cursor: grab;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 rgba(22, 35, 43, 0.14);
 }
 
 .card:active { cursor: grabbing; }
-.card.arrastando { opacity: 0.45; }
+.card.arrastando { opacity: 0.45; transform: rotate(-1.5deg); }
 
-.card-nome { font-weight: 800; font-size: 0.95rem; margin-bottom: 2px; }
+.card-cabeca {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.card-nome { font-weight: 800; font-size: 0.95rem; line-height: 1.2; }
+
+/* Etiqueta de nicho: cada segmento tem sua cor */
+.card-nicho {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1.5px solid currentColor;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.n-barbearia { color: #23557F; background: #E4EEF6; }
+.n-salao { color: #8A3E78; background: #F5E8F2; }
+.n-clinica { color: #1E7A4C; background: #E4F2EA; }
+.n-odonto { color: #2A6E75; background: #E3F1F2; }
+.n-restaurante { color: #A44E1D; background: #F8EBE1; }
+.n-outro { color: #5C6B75; background: #EDF0F2; }
 
 .card-meta {
-     font-family: "IBM Plex Mono", monospace;
-     font-size: 0.7rem;
-     color: var(--tinta-fraca);
-     display: flex;
-     gap: 8px;
-     flex-wrap: wrap;
-     margin-bottom: 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--tinta-fraca);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
-/* Assinatura do projeto: termômetro de follow-up.
-   A barra encolhe e muda de cor conforme os dias sem contato. */
-.termometro {
-     display: flex;
-     align-items: center;
-     gap: 8px;
+.card-obs {
+  font-size: 0.78rem;
+  color: var(--tinta-fraca);
+  line-height: 1.35;
+  margin-bottom: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
+
+/* Assinatura do projeto: termômetro de follow-up */
+.termometro { display: flex; align-items: center; gap: 8px; }
 
 .termometro-trilho {
-     flex: 1;
-     height: 6px;
-     background: var(--fundo);
-     border: 1px solid var(--linha);
-     border-radius: 3px;
-     overflow: hidden;
+  flex: 1;
+  height: 6px;
+  background: var(--fundo);
+  border: 1px solid var(--linha);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
 .termometro-barra { height: 100%; transition: width 0.3s ease; }
 
 .termometro-rotulo {
-     font-family: "IBM Plex Mono", monospace;
-     font-size: 0.68rem;
-     font-weight: 600;
-     white-space: nowrap;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .t-quente .termometro-barra { background: var(--quente); }
@@ -254,11 +411,11 @@ body {
 /* ---------- Modal ---------- */
 
 .modal {
-     border: 2px solid var(--tinta);
-     border-radius: var(--raio);
-     box-shadow: 6px 6px 0 rgba(22, 35, 43, 0.2);
-     padding: 0;
-     width: min(480px, calc(100vw - 32px));
+  border: 2px solid var(--tinta);
+  border-radius: var(--raio);
+  box-shadow: 6px 6px 0 rgba(22, 35, 43, 0.2);
+  padding: 0;
+  width: min(480px, calc(100vw - 32px));
 }
 
 .modal::backdrop { background: rgba(22, 35, 43, 0.45); }
@@ -266,33 +423,33 @@ body {
 .modal form { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 14px; }
 
 .modal-cabeca {
-     display: flex;
-     justify-content: space-between;
-     align-items: center;
-     border-bottom: 2px solid var(--tinta);
-     padding-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--tinta);
+  padding-bottom: 10px;
 }
 
 .modal-cabeca h2 { font-size: 1.1rem; font-weight: 900; }
 
 .modal label {
-     display: flex;
-     flex-direction: column;
-     gap: 5px;
-     font-weight: 700;
-     font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 0.8rem;
 }
 
 .modal input,
 .modal select,
 .modal textarea {
-     font-family: "IBM Plex Mono", monospace;
-     font-size: 0.85rem;
-     padding: 9px 10px;
-     border: 2px solid var(--linha);
-     border-radius: var(--raio);
-     background: var(--papel);
-     color: var(--tinta);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  padding: 9px 10px;
+  border: 2px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--papel);
+  color: var(--tinta);
 }
 
 .modal input:focus,
@@ -302,35 +459,38 @@ body {
 .linha-dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .modal-rodape {
-     display: flex;
-     justify-content: flex-end;
-     gap: 10px;
-     padding-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
 }
 
 /* ---------- Rodapé ---------- */
 
 .rodape {
-     padding: 14px 32px;
-     border-top: 1px solid var(--linha);
+  padding: 14px 32px;
+  border-top: 1px solid var(--linha);
+  background: var(--fundo);
 }
 
 .rodape p {
-     font-family: "IBM Plex Mono", monospace;
-     font-size: 0.7rem;
-     color: var(--tinta-fraca);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--tinta-fraca);
 }
 
 /* ---------- Responsivo ---------- */
 
 @media (max-width: 720px) {
-     .topo { padding: 20px 16px 14px; }
-     .quadro {
-            grid-auto-flow: row;
-            grid-auto-columns: unset;
-            grid-template-columns: 1fr;
-            padding: 16px;
-     }
-     .linha-dupla { grid-template-columns: 1fr; }
-     .rodape { padding: 12px 16px; }
+  .topo { padding: 18px 16px 14px; }
+  .busca input { width: 100px; }
+  .metrica { padding: 10px 18px; }
+  .quadro {
+    grid-auto-flow: row;
+    grid-auto-columns: unset;
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+  .linha-dupla { grid-template-columns: 1fr; }
+  .rodape { padding: 12px 16px; }
 }
