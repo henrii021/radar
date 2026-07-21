@@ -1,96 +1,121 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Radar · pipeline de prospecção</title>
-    <meta name="description" content="Quadro kanban para acompanhar prospecção de clientes, feito em JavaScript puro.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-  </head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radar · pipeline de prospecção</title>
+  <meta name="description" content="Quadro kanban para acompanhar prospecção de clientes, feito em JavaScript puro.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
 
-    <header class="topo">
-          <div class="topo-marca">
-                  <span class="marca-pulso" aria-hidden="true"></span>span>
-                  <h1>RADAR</h1>
-                <p class="topo-sub">pipeline de prospecção</p>p>
-          </div>div>
-        <div class="topo-acoes">
-              <p class="resumo-dia" id="resumoDia"></p>p>
-              <button class="btn-primario" id="btnNovoLead">+ Novo lead</button>button>
-        </div>div>
-    </header>header>
+  <header class="topo">
+    <div class="topo-marca">
+      <span class="marca-radar" aria-hidden="true">
+        <span class="marca-varredura"></span>
+        <span class="marca-ponto"></span>
+      </span>
+      <div>
+        <h1>RADAR</h1>
+        <p class="topo-sub">pipeline de prospecção</p>
+      </div>
+    </div>
+
+    <div class="topo-acoes">
+      <label class="busca">
+        <span class="busca-icone" aria-hidden="true"></span>
+        <input type="search" id="campoBusca" placeholder="buscar lead…"
+               aria-label="Buscar lead por nome, nicho ou cidade">
+      </label>
+      <button class="btn-primario" id="btnNovoLead">+ Novo lead</button>
+    </div>
+  </header>
+
+  <!-- Faixa de números da operação -->
+  <section class="metricas" aria-label="Resumo da operação">
+    <div class="metrica">
+      <span class="metrica-numero" id="mTotal">0</span>
+      <span class="metrica-rotulo">no radar</span>
+    </div>
+    <div class="metrica">
+      <span class="metrica-numero" id="mConversas">0</span>
+      <span class="metrica-rotulo">em conversa</span>
+    </div>
+    <div class="metrica m-alerta">
+      <span class="metrica-numero" id="mFrios">0</span>
+      <span class="metrica-rotulo">esfriando</span>
+    </div>
+    <div class="metrica m-ok">
+      <span class="metrica-numero" id="mFechados">0</span>
+      <span class="metrica-rotulo">fechados</span>
+    </div>
+  </section>
 
   <main class="quadro" id="quadro">
-      <!-- Colunas geradas pelo app.js -->
-  </main>main>
+    <!-- Colunas geradas pelo app.js -->
+  </main>
 
   <!-- Modal de criação / edição -->
   <dialog class="modal" id="modalLead">
-      <form method="dialog" id="formLead">
-            <div class="modal-cabeca">
-                    <h2 id="modalTitulo">Novo lead</h2>
-                    <button type="button" class="btn-fechar" id="btnFechar" aria-label="Fechar">×</button>button>
-            </div>div>
-      
-            <label>
-                      Nome do negócio
-                      <input type="text" name="nome" required maxlength="60" placeholder="Barbearia do Zé">
-            </label>
+    <form method="dialog" id="formLead">
+      <div class="modal-cabeca">
+        <h2 id="modalTitulo">Novo lead</h2>
+        <button type="button" class="btn-fechar" id="btnFechar" aria-label="Fechar">×</button>
+      </div>
 
-              <div class="linha-dupla">
-                        <label>
-                                    Nicho
-                                    <select name="nicho">
-                                                  <option>Barbearia</option>
-                                                <option>Salão de beleza</option>
-                                                <option>Clínica estética</option>
-                                                <option>Odontologia</option>
-                                                <option>Restaurante</option>
-                                                <option>Outro</option>
-                                    </select>select>
-                        </label>
-                      <label>
-                                Cidade
-                                <input type="text" name="cidade" maxlength="40" placeholder="Magé, RJ">
-                      </label>
-              </div>div>
-      
-            <div class="linha-dupla">
-                    <label>
-                              Instagram
-                              <input type="text" name="instagram" maxlength="40" placeholder="@perfil">
-                    </label>
-                    <label>
-                              Último contato
-                              <input type="date" name="ultimoContato">
-                    </label>
-            </div>div>
-      
-            <label>
-                    Observações
-                    <textarea name="obs" rows="3" maxlength="240" placeholder="Perfil bom, mas sem bio de venda. Comentei no post de sábado."></textarea>
-            </label>
-      
-            <div class="modal-rodape">
-                    <button type="button" class="btn-perigo" id="btnExcluir" hidden>Excluir lead</button>button>
-                    <button type="submit" class="btn-primario" id="btnSalvar">Salvar</button>button>
-            </div>div>
-      </form>form>
-  </dialog>dialog>
+      <label>
+        Nome do negócio
+        <input type="text" name="nome" required maxlength="60" placeholder="Barbearia do Zé">
+      </label>
+
+      <div class="linha-dupla">
+        <label>
+          Nicho
+          <select name="nicho">
+            <option>Barbearia</option>
+            <option>Salão de beleza</option>
+            <option>Clínica estética</option>
+            <option>Odontologia</option>
+            <option>Restaurante</option>
+            <option>Outro</option>
+          </select>
+        </label>
+        <label>
+          Cidade
+          <input type="text" name="cidade" maxlength="40" placeholder="Magé, RJ">
+        </label>
+      </div>
+
+      <div class="linha-dupla">
+        <label>
+          Instagram
+          <input type="text" name="instagram" maxlength="40" placeholder="@perfil">
+        </label>
+        <label>
+          Último contato
+          <input type="date" name="ultimoContato">
+        </label>
+      </div>
+
+      <label>
+        Observações
+        <textarea name="obs" rows="3" maxlength="240" placeholder="Perfil bom, mas sem bio de venda. Comentei no post de sábado."></textarea>
+      </label>
+
+      <div class="modal-rodape">
+        <button type="button" class="btn-perigo" id="btnExcluir" hidden>Excluir lead</button>
+        <button type="submit" class="btn-primario" id="btnSalvar">Salvar</button>
+      </div>
+    </form>
+  </dialog>
 
   <footer class="rodape">
-      <p>Feito em HTML, CSS e JavaScript puro · dados salvos no seu navegador (localStorage)</p>
-  </footer>footer>
+    <p>Feito em HTML, CSS e JavaScript puro · dados salvos no seu navegador (localStorage)</p>
+  </footer>
 
   <script src="app.js"></script>
 </body>
-</html>html>
-</p></option></option>
-                        </label>
-            </label></h1>
-</body></title>
-  </head>
+</html>
