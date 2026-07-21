@@ -7,30 +7,32 @@ Esse projeto nasceu de uma necessidade real: na minha agência (Fluxo), eu prosp
 ## O que ele faz
 
 - CRUD completo de leads: criar, editar, mover e excluir
-- - Cinco etapas de funil: Mapeado, Abordado, Conversando, Proposta e Fechado
-  - - Drag and drop nativo do HTML5 para mover leads entre etapas
-    - - Persistência em `localStorage`: os dados continuam lá quando você volta
-      - - **Termômetro de follow-up**: cada card mostra há quantos dias você não fala com aquele lead. Até 3 dias está quente, até 7 está morno, acima disso o card avisa que a conversa esfriou
-       
-        - ## Como rodar
-       
-        - Sem build, sem dependência. Clone o repositório e abra o `index.html` no navegador.
-       
-        - ```
-          git clone https://github.com/henrii021/radar.git
-          ```
+- Busca em tempo real por nome, nicho, cidade ou Instagram
+- Faixa de métricas da operação com contagem animada: total, em conversa, esfriando e fechados
+- Etiqueta de nicho com cor própria em cada card
+- Cinco etapas de funil: Mapeado, Abordado, Conversando, Proposta e Fechado
+- Drag and drop nativo do HTML5 para mover leads entre etapas
+- Persistência em `localStorage`: os dados continuam lá quando você volta
+- **Termômetro de follow-up**: cada card mostra há quantos dias você não fala com aquele lead. Até 3 dias está quente, até 7 está morno, acima disso o card avisa que a conversa esfriou
 
-          ## Decisões que tomei
+## Como rodar
 
-          **Por que JavaScript puro e não um framework?** Porque o objetivo aqui era dominar a base: manipulação de DOM, eventos, estado e persistência. Um framework esconderia exatamente o que eu queria praticar.
+Sem build, sem dependência. Clone o repositório e abra o `index.html` no navegador.
 
-          **Por que o termômetro?** Em prospecção, o problema não é falta de leads, é conversa que morre por esquecimento. Transformar "dias desde o último contato" em uma barra colorida faz o quadro gritar onde eu preciso agir. A regra está isolada na função `avaliarFollowUp`, então mudar os limites de dias é trivial.
+```
+git clone https://github.com/henrii021/radar.git
+```
 
-          **Por que `dialog` nativo?** O elemento `<dialog>` do HTML já entrega foco, tecla Esc e backdrop sem eu reescrever nada. Menos código, mais acessibilidade.
+## Decisões que tomei
 
-          **Segurança:** todo texto digitado pelo usuário passa pela função `escapar` antes de virar HTML, evitando injeção de código nos cards.
+**Por que JavaScript puro e não um framework?** Porque o objetivo aqui era dominar a base: manipulação de DOM, eventos, estado e persistência. Um framework esconderia exatamente o que eu queria praticar.
 
-          ## Stack
+**Por que o termômetro?** Em prospecção, o problema não é falta de leads, é conversa que morre por esquecimento. Transformar "dias desde o último contato" em uma barra colorida faz o quadro gritar onde eu preciso agir. A regra está isolada na função `avaliarFollowUp`, então mudar os limites de dias é trivial.
 
-          HTML5 · CSS3 (grid, custom properties) · JavaScript (ES6+) · localStorage · Drag and Drop API
-          
+**Por que `dialog` nativo?** O elemento `<dialog>` do HTML já entrega foco, tecla Esc e backdrop sem eu reescrever nada. Menos código, mais acessibilidade.
+
+**Segurança:** todo texto digitado pelo usuário passa pela função `escapar` antes de virar HTML, evitando injeção de código nos cards.
+
+## Stack
+
+HTML5 · CSS3 (grid, custom properties) · JavaScript (ES6+) · localStorage · Drag and Drop API
